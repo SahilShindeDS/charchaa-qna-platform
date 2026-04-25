@@ -1,20 +1,54 @@
 export function getDom() {
   return {
-    homeSection: document.getElementById("home-section"),
-    eduSection: document.getElementById("edu-section"),
-    genSection: document.getElementById("gen-section"),
-    adminSection: document.getElementById("admin-section"),
+    sections: Array.from(document.querySelectorAll(".section")),
+    navLinks: Array.from(document.querySelectorAll(".nav-link")),
+
+    topTitle: document.getElementById("top-title"),
     userStatus: document.getElementById("user-status"),
     googleLoginBtn: document.getElementById("google-login"),
     logoutBtn: document.getElementById("logout-btn"),
+
     loginModal: document.getElementById("login-modal"),
     signupModal: document.getElementById("signup-modal"),
+    forgotModal: document.getElementById("forgot-modal"),
+
+    dashboardSection: document.getElementById("dashboard-section"),
+    eduSection: document.getElementById("edu-section"),
+    genSection: document.getElementById("gen-section"),
+    mySection: document.getElementById("my-section"),
+    savedSection: document.getElementById("saved-section"),
+    settingsSection: document.getElementById("settings-section"),
+    adminSection: document.getElementById("admin-section"),
+
     eduForm: document.getElementById("edu-question-form"),
     eduInput: document.getElementById("edu-question"),
     eduList: document.getElementById("edu-questions-list"),
+    eduSearch: document.getElementById("edu-search"),
+    eduSort: document.getElementById("edu-sort"),
+    eduBookmarkOnly: document.getElementById("edu-bookmark-only"),
+
     genForm: document.getElementById("general-question-form"),
     genInput: document.getElementById("general-question"),
     genList: document.getElementById("general-questions-list"),
-    adminContainer: document.getElementById("admin-questions")
+    genSearch: document.getElementById("gen-search"),
+    genSort: document.getElementById("gen-sort"),
+    genBookmarkOnly: document.getElementById("gen-bookmark-only"),
+
+    dashboardFeed: document.getElementById("dashboard-feed"),
+    myActivityList: document.getElementById("my-activity-list"),
+    savedQuestionsList: document.getElementById("saved-questions-list"),
+    adminContainer: document.getElementById("admin-questions"),
+
+    statEdu: document.getElementById("stat-edu"),
+    statGen: document.getElementById("stat-gen"),
+    statSaved: document.getElementById("stat-saved"),
+    statMy: document.getElementById("stat-my"),
+
+    themeSelect: document.getElementById("theme-select"),
+    compactMode: document.getElementById("compact-mode"),
+    notifyToggle: document.getElementById("notify-toggle"),
+    profileForm: document.getElementById("profile-form"),
+    profileDisplayName: document.getElementById("profile-display-name"),
+    profileStatus: document.getElementById("profile-status")
   };
 }

@@ -1,23 +1,47 @@
-export function showSection(activeSection, sections) {
-  sections.forEach((section) => section.classList.remove("active"));
-  activeSection.classList.add("active");
+function titleFromTarget(targetId) {
+  const lookup = {
+    "dashboard-section": "Dashboard",
+    "edu-section": "Educational",
+    "gen-section": "General",
+    "my-section": "My Activity",
+    "saved-section": "Saved",
+    "settings-section": "Settings",
+    "admin-section": "Admin"
+  };
+  return lookup[targetId] || "Charchaa";
 }
 
-export function setupNavigation({ dom, isAdmin, onAdminOpen }) {
-  document.getElementById("go-edu").onclick = () => showSection(dom.eduSection, [dom.homeSection, dom.genSection, dom.adminSection, dom.eduSection]);
-  document.getElementById("go-gen").onclick = () => showSection(dom.genSection, [dom.homeSection, dom.eduSection, dom.adminSection, dom.genSection]);
+export function showSection(dom, targetId) {
+  dom.sections.forEach((section) => {
+    section.classList.toggle("active", section.id === targetId);
+  });
 
-  document.getElementById("go-admin").onclick = async () => {
-    if (!isAdmin()) {
-      alert("Only admin can access this section.");
-      return;
-    }
+  dom.navLinks.forEach((link) => {
+    link.classList.toggle("active", link.dataset.target === targetId);
+  });
 
-    showSection(dom.adminSection, [dom.homeSection, dom.eduSection, dom.genSection, dom.adminSection]);
-    await onAdminOpen();
-  };
+  dom.topTitle.textContent = titleFromTarget(targetId);
+}
 
-  document.getElementById("back-home-edu").onclick = () => showSection(dom.homeSection, [dom.eduSection, dom.homeSection]);
-  document.getElementById("back-home-gen").onclick = () => showSection(dom.homeSection, [dom.genSection, dom.homeSection]);
-  document.getElementById("back-home-admin").onclick = () => showSection(dom.homeSection, [dom.adminSection, dom.homeSection]);
+export function setupNavigation({ dom, isAdmin, onAdminOpen, onSectionChange }) {
+  dom.navLinks.forEach((link) => {
+    link.addEventListener("click", async () => {
+      const target = link.dataset.target;
+
+      if (target === "admin-section" && !isAdmin()) {
+        alert("Only admin can access this section.");
+        return;
+      }
+
+      showSection(dom, target);
+
+      if (target === "admin-section") {
+        await onAdminOpen();
+      }
+
+      if (typeof onSectionChange === "function") {
+        onSectionChange(target);
+      }
+    });
+  });
 }

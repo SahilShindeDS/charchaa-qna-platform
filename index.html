@@ -4,126 +4,209 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Charchaa</title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Roboto',sans-serif;background:#f4f7fa;color:#333;}
-header{background:linear-gradient(135deg,#2980b9,#6dd5fa);color:white;padding:25px 0;text-align:center;font-size:32px;font-weight:700;box-shadow:0 4px 10px rgba(0,0,0,0.1);}
-#login-section{text-align:center;margin:25px 0;}
-#login-section button{margin:5px;padding:10px 25px;border-radius:25px;border:none;cursor:pointer;background:#3498db;color:white;transition:0.3s;font-weight:500;}
-#login-section button:hover{background:#2980b9;transform:translateY(-2px);}
-#user-status{margin-top:10px;font-weight:500;color:#555;}
-.section{display:none;padding:20px;max-width:1000px;margin:auto;}
-.active{display:block;}
-.card-home{display:flex;flex-direction:column;align-items:center;justify-content:center;background:white;padding:30px;border-radius:20px;box-shadow:0 6px 16px rgba(0,0,0,0.12);cursor:pointer;transition:0.3s;text-align:center;}
-.card-home:hover{transform:translateY(-5px);box-shadow:0 8px 20px rgba(0,0,0,0.2);}
-.card-home h3{margin:15px 0;font-size:24px;color:#2980b9;}
-.card-home p{color:#555;}
-.card-home img{width:80px;height:80px;margin-bottom:10px;}
-.nav-home{display:flex;justify-content:center;gap:30px;flex-wrap:wrap;}
-form{display:flex;flex-direction:column;gap:12px;margin-bottom:25px;}
-input,textarea{padding:12px;border-radius:8px;border:1px solid #ccc;font-size:16px;width:100%;transition:0.3s;}
-input:focus,textarea:focus{border-color:#3498db;outline:none;box-shadow:0 0 8px rgba(52,152,219,0.3);}
-button.submit{background:#27ae60;color:white;border:none;padding:12px;border-radius:25px;cursor:pointer;font-weight:500;transition:0.3s;}
-button.submit:hover{background:#2ecc71;transform:translateY(-2px);}
-.card{background:white;padding:18px;margin:12px 0;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.08);transition:0.3s;}
-.card:hover{transform:translateY(-3px);box-shadow:0 6px 16px rgba(0,0,0,0.12);}
-.answer-section{margin-top:12px;padding-top:10px;border-top:1px solid #eee;}
-.answer-input{display:flex;gap:10px;margin-top:8px;}
-.answer-input textarea{flex:1;}
-.back-btn{margin-top:15px;background:#e67e22;color:white;border:none;padding:10px 25px;border-radius:25px;cursor:pointer;transition:0.3s;}
-.back-btn:hover{background:#d35400;transform:translateY(-2px);}
-.timestamp{color:#7f8c8d;font-size:13px;margin-top:6px;}
-.modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;overflow:auto;background:rgba(0,0,0,0.5);}
-.modal-content{background:#fff;margin:10% auto;padding:20px;border-radius:12px;max-width:400px;position:relative;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
-.close{position:absolute;top:10px;right:15px;font-size:22px;font-weight:bold;cursor:pointer;color:#333;}
-.modal button{margin-top:10px;}
-#admin-section{padding:20px; max-width:1000px;margin:auto;}
-.admin-card{background:#fff;padding:15px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);margin-bottom:12px;}
-.admin-card h4{margin-bottom:6px;color:#2980b9;}
-@media(max-width:700px){.nav-home{flex-direction:column;align-items:center;}.card-home{width:80%;}}
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./src/styles/app.css">
 </head>
 <body>
-
-<header>Charchaa.com</header>
-
-<div id="login-section">
-  <button id="open-login">Login</button>
-  <button id="open-signup">Signup</button>
-  <button id="google-login">Login with Google</button>
-  <button id="logout-btn">Logout</button>
-  <p id="user-status">Not logged in</p>
-</div>
-
-<div id="home-section" class="section active">
-  <h2 style="text-align:center; margin-bottom:30px;">Choose a Section</h2>
-  <div class="nav-home">
-    <div class="card-home" id="go-edu">
-      <img src="https://img.icons8.com/fluency/96/000000/book.png"/>
-      <h3>Educational Q&A</h3>
-      <p>Ask and answer questions related to studies and learning.</p>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="logo-block">
+      <div class="logo-dot">C</div>
+      <div>
+        <h1>Charchaa</h1>
+        <p>Knowledge Community</p>
+      </div>
     </div>
-    <div class="card-home" id="go-gen">
-      <img src="https://img.icons8.com/fluency/96/000000/comments.png"/>
-      <h3>General Q&A</h3>
-      <p>Discuss general topics, hobbies, tech, and everyday life questions.</p>
+
+    <nav class="nav-menu" id="nav-menu">
+      <button class="nav-link active" data-target="dashboard-section">Dashboard</button>
+      <button class="nav-link" data-target="edu-section">Educational</button>
+      <button class="nav-link" data-target="gen-section">General</button>
+      <button class="nav-link" data-target="my-section">My Activity</button>
+      <button class="nav-link" data-target="saved-section">Saved</button>
+      <button class="nav-link" data-target="settings-section">Settings</button>
+      <button class="nav-link" data-target="admin-section" id="nav-admin">Admin</button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <small>Built with Firebase</small>
     </div>
-    <div class="card-home" id="go-admin">
-      <img src="https://img.icons8.com/fluency/96/000000/admin-settings-male.png"/>
-      <h3>Admin Panel</h3>
-      <p>Only visible to admin. View all users and questions.</p>
-    </div>
-  </div>
-</div>
+  </aside>
 
-<div id="edu-section" class="section">
-  <h2>Educational Questions</h2>
-  <form id="edu-question-form">
-    <textarea id="edu-question" placeholder="Ask your educational question..." required></textarea>
-    <button type="submit" class="submit">Submit Question</button>
-  </form>
-  <div id="edu-questions-list"></div>
-  <button class="back-btn" id="back-home-edu">Back to Home</button>
-</div>
+  <main class="content">
+    <header class="topbar">
+      <div>
+        <h2 id="top-title">Dashboard</h2>
+        <p id="user-status">Not logged in</p>
+      </div>
+      <div id="login-section" class="auth-actions">
+        <button id="open-login" class="btn btn-muted">Login</button>
+        <button id="open-signup" class="btn btn-muted">Signup</button>
+        <button id="google-login" class="btn btn-primary">Google</button>
+        <button id="logout-btn" class="btn btn-danger">Logout</button>
+      </div>
+    </header>
 
-<div id="gen-section" class="section">
-  <h2>General Questions</h2>
-  <form id="general-question-form">
-    <textarea id="general-question" placeholder="Ask your general question..." required></textarea>
-    <button type="submit" class="submit">Submit Question</button>
-  </form>
-  <div id="general-questions-list"></div>
-  <button class="back-btn" id="back-home-gen">Back to Home</button>
-</div>
+    <section id="dashboard-section" class="section active">
+      <div class="stats-grid">
+        <article class="stat-card"><p>Educational Questions</p><strong id="stat-edu">0</strong></article>
+        <article class="stat-card"><p>General Questions</p><strong id="stat-gen">0</strong></article>
+        <article class="stat-card"><p>Saved Items</p><strong id="stat-saved">0</strong></article>
+        <article class="stat-card"><p>My Questions</p><strong id="stat-my">0</strong></article>
+      </div>
 
-<div id="admin-section" class="section">
-  <h2>Admin Panel</h2>
-  <div id="admin-questions"></div>
-  <button class="back-btn" id="back-home-admin">Back to Home</button>
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Recent Questions</h3>
+          <span class="badge">Live Feed</span>
+        </div>
+        <div id="dashboard-feed" class="list"></div>
+      </div>
+    </section>
+
+    <section id="edu-section" class="section">
+      <div class="section-head">
+        <h3>Educational Q&A</h3>
+      </div>
+      <form id="edu-question-form" class="ask-form">
+        <textarea id="edu-question" placeholder="Ask your educational question..." required></textarea>
+        <button type="submit" class="btn btn-primary">Post Question</button>
+      </form>
+      <div class="toolbar">
+        <input id="edu-search" placeholder="Search educational questions">
+        <select id="edu-sort">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+        </select>
+        <label class="check-wrap"><input type="checkbox" id="edu-bookmark-only"> Saved Only</label>
+      </div>
+      <div id="edu-questions-list" class="list"></div>
+    </section>
+
+    <section id="gen-section" class="section">
+      <div class="section-head">
+        <h3>General Q&A</h3>
+      </div>
+      <form id="general-question-form" class="ask-form">
+        <textarea id="general-question" placeholder="Ask your general question..." required></textarea>
+        <button type="submit" class="btn btn-primary">Post Question</button>
+      </form>
+      <div class="toolbar">
+        <input id="gen-search" placeholder="Search general questions">
+        <select id="gen-sort">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+        </select>
+        <label class="check-wrap"><input type="checkbox" id="gen-bookmark-only"> Saved Only</label>
+      </div>
+      <div id="general-questions-list" class="list"></div>
+    </section>
+
+    <section id="my-section" class="section">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>My Activity</h3>
+          <span class="badge">Your posts</span>
+        </div>
+        <div id="my-activity-list" class="list"></div>
+      </div>
+    </section>
+
+    <section id="saved-section" class="section">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Saved Questions</h3>
+          <span class="badge">Bookmarks</span>
+        </div>
+        <div id="saved-questions-list" class="list"></div>
+      </div>
+    </section>
+
+    <section id="settings-section" class="section">
+      <div class="settings-grid">
+        <article class="panel">
+          <h3>Profile</h3>
+          <form id="profile-form" class="ask-form compact-form">
+            <input id="profile-display-name" placeholder="Display name">
+            <button type="submit" class="btn btn-primary">Update Profile</button>
+          </form>
+          <p class="meta" id="profile-status">Login to edit your profile.</p>
+        </article>
+
+        <article class="panel">
+          <h3>Appearance</h3>
+          <div class="setting-row">
+            <label for="theme-select">Theme</label>
+            <select id="theme-select">
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <label for="compact-mode">Compact mode</label>
+            <input id="compact-mode" type="checkbox">
+          </div>
+          <div class="setting-row">
+            <label for="notify-toggle">Email notifications</label>
+            <input id="notify-toggle" type="checkbox">
+          </div>
+        </article>
+
+        <article class="panel">
+          <h3>Security</h3>
+          <button id="open-forgot-from-settings" class="btn btn-muted" type="button">Reset Password</button>
+          <p class="meta">Sends a secure reset link to your email.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="admin-section" class="section">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Admin Panel</h3>
+          <span class="badge">Restricted</span>
+        </div>
+        <div id="admin-questions" class="list"></div>
+      </div>
+    </section>
+  </main>
 </div>
 
 <div id="login-modal" class="modal">
   <div class="modal-content">
-    <span class="close" id="close-login">&times;</span>
+    <button class="close" id="close-login" type="button">x</button>
     <h3>Login</h3>
-    <form id="login-form">
+    <form id="login-form" class="ask-form compact-form">
       <input type="email" id="login-email" placeholder="Email" required>
       <input type="password" id="login-password" placeholder="Password" required>
-      <button type="submit" class="submit">Login</button>
+      <button type="submit" class="btn btn-primary">Login</button>
+      <button id="open-forgot" type="button" class="btn btn-muted">Forgot Password?</button>
     </form>
   </div>
 </div>
 
 <div id="signup-modal" class="modal">
   <div class="modal-content">
-    <span class="close" id="close-signup">&times;</span>
-    <h3>Signup</h3>
-    <form id="signup-form">
+    <button class="close" id="close-signup" type="button">x</button>
+    <h3>Create account</h3>
+    <form id="signup-form" class="ask-form compact-form">
       <input type="text" id="signup-name" placeholder="Full Name" required>
       <input type="email" id="signup-email" placeholder="Email" required>
       <input type="password" id="signup-password" placeholder="Password" required>
-      <button type="submit" class="submit">Signup</button>
+      <button type="submit" class="btn btn-primary">Signup</button>
+    </form>
+  </div>
+</div>
+
+<div id="forgot-modal" class="modal">
+  <div class="modal-content">
+    <button class="close" id="close-forgot" type="button">x</button>
+    <h3>Reset Password</h3>
+    <form id="forgot-form" class="ask-form compact-form">
+      <input type="email" id="forgot-email" placeholder="Your email" required>
+      <button type="submit" class="btn btn-primary">Send Reset Link</button>
     </form>
   </div>
 </div>
@@ -131,4 +214,3 @@ button.submit:hover{background:#2ecc71;transform:translateY(-2px);}
 <script type="module" src="./src/main.js"></script>
 </body>
 </html>
-

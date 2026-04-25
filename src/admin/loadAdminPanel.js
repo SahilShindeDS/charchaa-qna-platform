@@ -8,15 +8,19 @@ function buildUserMap(userDocs) {
   return users;
 }
 
-function renderQuestion(container, data, userInfo) {
-  const card = document.createElement("div");
-  card.className = "admin-card";
-  card.innerHTML = `<h4>${data.question}</h4><p>User: ${userInfo?.name || data.userId} | Email: ${userInfo?.email || "N/A"}<br>Posted: ${data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : "Just now"}</p>`;
+function renderQuestion(container, data, userInfo, label) {
+  const card = document.createElement("article");
+  card.className = "card";
+  card.innerHTML = `
+    <h4 class="card-title">${data.question}</h4>
+    <p class="meta">${label} | User: ${userInfo?.name || data.userId} | Email: ${userInfo?.email || "N/A"}</p>
+    <p class="meta">Posted: ${data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : "Just now"}</p>
+  `;
   container.appendChild(card);
 }
 
 export async function loadAdminPanel({ adminContainer, eduRef, genRef }) {
-  adminContainer.innerHTML = "<p>Loading...</p>";
+  adminContainer.innerHTML = "<div class=\"empty\">Loading admin data...</div>";
 
   const [usersSnap, eduSnap, genSnap] = await Promise.all([
     getDocs(collection(db, "users")),
@@ -25,16 +29,17 @@ export async function loadAdminPanel({ adminContainer, eduRef, genRef }) {
   ]);
 
   const usersById = buildUserMap(usersSnap.docs);
-  adminContainer.innerHTML = "<h3>Educational Questions</h3>";
+  adminContainer.innerHTML = "";
 
   eduSnap.docs.forEach((docSnap) => {
-    const data = docSnap.data();
-    renderQuestion(adminContainer, data, usersById.get(data.userId));
+    renderQuestion(adminContainer, docSnap.data(), usersById.get(docSnap.data().userId), "Educational");
   });
 
-  adminContainer.innerHTML += "<h3>General Questions</h3>";
   genSnap.docs.forEach((docSnap) => {
-    const data = docSnap.data();
-    renderQuestion(adminContainer, data, usersById.get(data.userId));
+    renderQuestion(adminContainer, docSnap.data(), usersById.get(docSnap.data().userId), "General");
   });
+
+  if (!eduSnap.docs.length && !genSnap.docs.length) {
+    adminContainer.innerHTML = "<div class=\"empty\">No questions available yet.</div>";
+  }
 }
