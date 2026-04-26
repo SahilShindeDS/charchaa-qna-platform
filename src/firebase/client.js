@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
   getAuth,
   onAuthStateChanged,
+  onIdTokenChanged,
   GoogleAuthProvider,
   signInWithPopup,
   signOut,
@@ -9,7 +10,9 @@ import {
   signInWithEmailAndPassword,
   updateProfile,
   sendPasswordResetEmail,
-  fetchSignInMethodsForEmail
+  fetchSignInMethodsForEmail,
+  sendEmailVerification,
+  reload
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore,
@@ -35,6 +38,7 @@ export {
   db,
   provider,
   onAuthStateChanged,
+  onIdTokenChanged,
   signInWithPopup,
   signOut,
   createUserWithEmailAndPassword,
@@ -42,6 +46,8 @@ export {
   updateProfile,
   sendPasswordResetEmail,
   fetchSignInMethodsForEmail,
+  sendEmailVerification,
+  reload,
   collection,
   addDoc,
   query,

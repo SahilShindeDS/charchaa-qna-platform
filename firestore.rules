@@ -1,0 +1,116 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isVerifiedEmail() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function questionShapeValid() {
+      return request.resource.data.keys().hasOnly(["question", "userId", "timestamp"]) &&
+        request.resource.data.question is string &&
+        request.resource.data.question.size() > 0 &&
+        request.resource.data.question.size() <= 1000 &&
+        request.resource.data.userId == request.auth.uid;
+    }
+
+    function answerShapeValid() {
+      return request.resource.data.keys().hasOnly(["answer", "userId", "timestamp"]) &&
+        request.resource.data.answer is string &&
+        request.resource.data.answer.size() > 0 &&
+        request.resource.data.answer.size() <= 2000 &&
+        request.resource.data.userId == request.auth.uid;
+    }
+
+    function reportShapeValid() {
+      return request.resource.data.keys().hasOnly([
+          "targetType",
+          "targetCollection",
+          "targetId",
+          "targetPath",
+          "preview",
+          "reason",
+          "reportedBy",
+          "status",
+          "createdAt"
+        ]) &&
+        request.resource.data.targetType == "question" &&
+        request.resource.data.targetCollection in ["educationalQuestions", "generalQuestions"] &&
+        request.resource.data.targetId is string &&
+        request.resource.data.targetId.size() > 0 &&
+        request.resource.data.targetPath is string &&
+        request.resource.data.targetPath.size() > 0 &&
+        request.resource.data.preview is string &&
+        request.resource.data.preview.size() <= 240 &&
+        request.resource.data.reason is string &&
+        request.resource.data.reason.size() > 0 &&
+        request.resource.data.reason.size() <= 300 &&
+        request.resource.data.reportedBy == request.auth.uid &&
+        request.resource.data.status == "open";
+    }
+
+    match /users/{uid} {
+      // Users can read only their own profile, admins can read all.
+      allow read: if isOwner(uid) || isAdmin();
+
+      // Users can create/update only their own profile with constrained fields.
+      allow create, update: if isOwner(uid) &&
+        isVerifiedEmail() &&
+        request.resource.data.keys().hasOnly(["name", "email", "uid"]) &&
+        request.resource.data.uid == uid &&
+        request.resource.data.email == request.auth.token.email &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.name.size() <= 120;
+
+      // Keep profile deletion as admin-only operation.
+      allow delete: if isAdmin();
+    }
+
+    match /educationalQuestions/{questionId} {
+      // Publicly readable content.
+      allow read: if true;
+      allow create: if isVerifiedEmail() && questionShapeValid();
+      allow update, delete: if false;
+
+      match /answers/{answerId} {
+        allow read: if true;
+        allow create: if isVerifiedEmail() && answerShapeValid();
+        allow update, delete: if false;
+      }
+    }
+
+    match /generalQuestions/{questionId} {
+      allow read: if true;
+      allow create: if isVerifiedEmail() && questionShapeValid();
+      allow update, delete: if false;
+
+      match /answers/{answerId} {
+        allow read: if true;
+        allow create: if isVerifiedEmail() && answerShapeValid();
+        allow update, delete: if false;
+      }
+    }
+
+    match /reports/{reportId} {
+      allow create: if isSignedIn() && reportShapeValid();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Deny by default for any collection not explicitly matched above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

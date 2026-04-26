@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./src/styles/app.css">
+<link rel="stylesheet" href="./src/styles/app.css?v=20260426-1">
 </head>
 <body>
 <div class="app-shell">
@@ -27,7 +27,7 @@
       <button class="nav-link" data-target="my-section">My Activity</button>
       <button class="nav-link" data-target="saved-section">Saved</button>
       <button class="nav-link" data-target="settings-section">Settings</button>
-      <button class="nav-link" data-target="admin-section" id="nav-admin">Admin</button>
+      <button class="nav-link hidden" data-target="admin-section" id="nav-admin">Admin</button>
     </nav>
 
     <div class="sidebar-foot">
@@ -40,6 +40,7 @@
       <div>
         <h2 id="top-title">Dashboard</h2>
         <p id="user-status">Not logged in</p>
+        <p id="auth-state-hint" class="auth-hint">Read is public. Login to post questions and answers.</p>
       </div>
       <div id="login-section" class="auth-actions">
         <button id="open-login" class="btn btn-muted">Login</button>
@@ -73,6 +74,7 @@
       <form id="edu-question-form" class="ask-form">
         <textarea id="edu-question" placeholder="Ask your educational question..." required></textarea>
         <button type="submit" class="btn btn-primary">Post Question</button>
+        <p id="edu-write-gate" class="form-msg" aria-live="polite"></p>
       </form>
       <div class="toolbar">
         <input id="edu-search" placeholder="Search educational questions">
@@ -83,6 +85,9 @@
         <label class="check-wrap"><input type="checkbox" id="edu-bookmark-only"> Saved Only</label>
       </div>
       <div id="edu-questions-list" class="list"></div>
+      <div class="list-actions">
+        <button id="edu-load-more" type="button" class="btn btn-muted hidden">Load More</button>
+      </div>
     </section>
 
     <section id="gen-section" class="section">
@@ -92,6 +97,7 @@
       <form id="general-question-form" class="ask-form">
         <textarea id="general-question" placeholder="Ask your general question..." required></textarea>
         <button type="submit" class="btn btn-primary">Post Question</button>
+        <p id="gen-write-gate" class="form-msg" aria-live="polite"></p>
       </form>
       <div class="toolbar">
         <input id="gen-search" placeholder="Search general questions">
@@ -102,6 +108,9 @@
         <label class="check-wrap"><input type="checkbox" id="gen-bookmark-only"> Saved Only</label>
       </div>
       <div id="general-questions-list" class="list"></div>
+      <div class="list-actions">
+        <button id="gen-load-more" type="button" class="btn btn-muted hidden">Load More</button>
+      </div>
     </section>
 
     <section id="my-section" class="section">
@@ -181,6 +190,7 @@
     <form id="login-form" class="ask-form compact-form">
       <input type="email" id="login-email" placeholder="Email" required>
       <input type="password" id="login-password" placeholder="Password" required>
+      <p id="login-msg" class="form-msg" aria-live="polite"></p>
       <button type="submit" class="btn btn-primary">Login</button>
       <button id="open-forgot" type="button" class="btn btn-muted">Forgot Password?</button>
     </form>
@@ -195,7 +205,9 @@
       <input type="text" id="signup-name" placeholder="Full Name" required>
       <input type="email" id="signup-email" placeholder="Email" required>
       <input type="password" id="signup-password" placeholder="Password" required>
+      <p id="signup-msg" class="form-msg" aria-live="polite"></p>
       <button type="submit" class="btn btn-primary">Signup</button>
+      <p class="meta">After signup, we will send a verification link to your email.</p>
     </form>
   </div>
 </div>
@@ -206,11 +218,35 @@
     <h3>Reset Password</h3>
     <form id="forgot-form" class="ask-form compact-form">
       <input type="email" id="forgot-email" placeholder="Your email" required>
+      <p id="forgot-msg" class="form-msg" aria-live="polite"></p>
       <button type="submit" class="btn btn-primary">Send Reset Link</button>
     </form>
   </div>
 </div>
 
-<script type="module" src="./src/main.js"></script>
+<div id="verify-modal" class="modal">
+  <div class="modal-content">
+    <button class="close" id="close-verify" type="button">x</button>
+    <h3>Verify your email</h3>
+    <p id="verify-email-text" class="meta">We sent a verification link to your inbox.</p>
+    <ol class="verify-steps">
+      <li>Open your email inbox.</li>
+      <li>Find the email from Firebase/Charchaa.</li>
+      <li>Click the verification link in that email.</li>
+      <li>Come back and login again.</li>
+    </ol>
+    <p class="meta">Tip: check Spam/Promotions if you do not see it in Inbox.</p>
+    <div class="action-row">
+      <button id="verify-open-mail" type="button" class="btn btn-muted">Open Inbox</button>
+      <button id="verify-resend" type="button" class="btn btn-muted">Resend Email</button>
+      <button id="verify-check" type="button" class="btn btn-muted">I've Verified</button>
+      <button id="verify-go-login" type="button" class="btn btn-primary">Go to Login</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-root" class="toast-root" aria-live="polite"></div>
+
+<script type="module" src="./src/main.js?v=20260426-1"></script>
 </body>
 </html>

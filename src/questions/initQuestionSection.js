@@ -7,9 +7,49 @@ import {
   onSnapshot
 } from "../firebase/client.js";
 import { getBookmarks, toggleBookmark } from "../state/preferences.js";
+import { showToast, setButtonLoading } from "../ui/feedback.js";
+
+const PAGE_SIZE = 10;
 
 function bookmarkKey(collectionName, docId) {
   return `${collectionName}:${docId}`;
+}
+
+function toFriendlyErrorMessage(error, fallbackMessage) {
+  const code = String(error?.code || "");
+  if (code.includes("permission-denied")) {
+    return "Action blocked by security rules. Login with a verified email to post.";
+  }
+  if (code.includes("unavailable")) {
+    return "Network issue. Please check your connection and try again.";
+  }
+  return error?.message || fallbackMessage;
+}
+
+function canWriteContent(user) {
+  if (!user) {
+    return false;
+  }
+
+  const hasPasswordProvider = user.providerData?.some((provider) => provider.providerId === "password");
+  if (!hasPasswordProvider) {
+    return true;
+  }
+
+  return user.emailVerified === true;
+}
+
+function writeGateMessage(user) {
+  if (!user) {
+    return "Read is public. Login to post questions and answers.";
+  }
+
+  const hasPasswordProvider = user.providerData?.some((provider) => provider.providerId === "password");
+  if (hasPasswordProvider && !user.emailVerified) {
+    return "Verify your email first to post questions and answers.";
+  }
+
+  return "";
 }
 
 function safeMillis(timestamp) {
@@ -55,7 +95,7 @@ function attachAnswers({ collectionName, questionId, answerSection }) {
     });
   }, (error) => {
     console.error("Failed to load answers", error);
-    answerSection.innerHTML = "<p class=\"meta\">Could not load answers.</p>";
+    answerSection.innerHTML = `<p class="meta">${toFriendlyErrorMessage(error, "Could not load answers.")}</p>`;
   });
 }
 
@@ -64,7 +104,10 @@ function createQuestionCard({
   collectionName,
   onBookmarkToggle,
   onAnyDataChange,
-  answerUnsubs
+  answerUnsubs,
+  toastRoot,
+  canWrite,
+  writeBlockReason
 }) {
   const data = docSnap.data();
   const container = document.createElement("article");
@@ -121,38 +164,90 @@ function createQuestionCard({
     }
   };
 
+  const reportBtn = document.createElement("button");
+  reportBtn.className = "btn btn-muted";
+  reportBtn.textContent = "Report";
+  reportBtn.onclick = async () => {
+    const user = auth.currentUser;
+    if (!user) {
+      showToast(toastRoot, "Login to report content.", "error");
+      return;
+    }
+
+    const reason = window.prompt("Report reason (required):", "Spam or inappropriate");
+    if (!reason || !reason.trim()) {
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "reports"), {
+        targetType: "question",
+        targetCollection: collectionName,
+        targetId: docSnap.id,
+        targetPath: `${collectionName}/${docSnap.id}`,
+        preview: String(data.question || "").slice(0, 240),
+        reason: reason.trim().slice(0, 300),
+        reportedBy: user.uid,
+        status: "open",
+        createdAt: serverTimestamp()
+      });
+      showToast(toastRoot, "Report submitted. Admin will review it.", "success");
+    } catch (error) {
+      showToast(toastRoot, toFriendlyErrorMessage(error, "Failed to submit report."), "error");
+    }
+  };
+
   actionRow.appendChild(saveBtn);
+  actionRow.appendChild(reportBtn);
 
   const answerSection = document.createElement("div");
   answerSection.className = "answer-section";
 
   const answerInput = document.createElement("textarea");
-  answerInput.placeholder = "Write your answer...";
+  answerInput.placeholder = canWrite ? "Write your answer..." : writeBlockReason;
+  answerInput.disabled = !canWrite;
 
   const answerBtn = document.createElement("button");
   answerBtn.className = "btn btn-primary";
   answerBtn.textContent = "Submit Answer";
+  answerBtn.disabled = !canWrite;
   answerBtn.onclick = async () => {
+    setButtonLoading(answerBtn, true, "Posting...");
     const user = auth.currentUser;
     if (!user) {
-      alert("Login to answer.");
+      showToast(toastRoot, "Login to answer.", "error");
+      setButtonLoading(answerBtn, false);
+      return;
+    }
+
+    if (!canWriteContent(user)) {
+      showToast(toastRoot, "Verify your email first before posting answers.", "error");
+      setButtonLoading(answerBtn, false);
       return;
     }
 
     const answer = answerInput.value.trim();
     if (!answer) {
-      alert("Enter an answer.");
+      showToast(toastRoot, "Enter an answer.", "error");
+      setButtonLoading(answerBtn, false);
       return;
     }
 
-    await addDoc(collection(db, collectionName, docSnap.id, "answers"), {
-      answer,
-      userId: user.uid,
-      timestamp: serverTimestamp()
-    });
-    answerInput.value = "";
-    if (typeof onAnyDataChange === "function") {
-      onAnyDataChange();
+    try {
+      await addDoc(collection(db, collectionName, docSnap.id, "answers"), {
+        answer,
+        userId: user.uid,
+        timestamp: serverTimestamp()
+      });
+      answerInput.value = "";
+      showToast(toastRoot, "Answer posted.", "success");
+      if (typeof onAnyDataChange === "function") {
+        onAnyDataChange();
+      }
+    } catch (error) {
+      showToast(toastRoot, toFriendlyErrorMessage(error, "Failed to post answer."), "error");
+    } finally {
+      setButtonLoading(answerBtn, false);
     }
   };
 
@@ -180,12 +275,41 @@ export function initQuestionSection({
   searchEl,
   sortEl,
   bookmarkOnlyEl,
+  loadMoreBtn,
   onBookmarkToggle,
-  onAnyDataChange
+  onAnyDataChange,
+  toastRoot,
+  writeGateEl
 }) {
   const categoryRef = collection(db, collectionName);
   let docs = [];
+  let currentUser = auth.currentUser;
+  let visibleCount = PAGE_SIZE;
   const answerUnsubs = new Map();
+  const submitBtn = formEl.querySelector("button[type='submit']");
+
+  const applyComposerState = () => {
+    const canWrite = canWriteContent(currentUser);
+    const message = writeGateMessage(currentUser);
+
+    inputEl.disabled = !canWrite;
+    submitBtn.disabled = !canWrite;
+    if (!canWrite && message) {
+      inputEl.placeholder = message;
+    } else {
+      inputEl.placeholder = collectionName === "educationalQuestions"
+        ? "Ask your educational question..."
+        : "Ask your general question...";
+    }
+
+    if (writeGateEl) {
+      writeGateEl.textContent = message;
+      writeGateEl.classList.remove("error", "success");
+      if (message) {
+        writeGateEl.classList.add("error");
+      }
+    }
+  };
 
   const cleanupAnswers = () => {
     answerUnsubs.forEach((unsub) => unsub());
@@ -195,11 +319,13 @@ export function initQuestionSection({
   const renderList = () => {
     cleanupAnswers();
     listEl.innerHTML = "";
+    const canWrite = canWriteContent(currentUser);
+    const writeBlockReason = writeGateMessage(currentUser);
 
     const search = (searchEl.value || "").trim().toLowerCase();
     const bookmarkOnly = bookmarkOnlyEl.checked;
 
-    const visibleDocs = sortDocs(docs, sortEl.value).filter((docSnap) => {
+    const filteredDocs = sortDocs(docs, sortEl.value).filter((docSnap) => {
       const text = String(docSnap.data().question || "").toLowerCase();
       if (search && !text.includes(search)) {
         return false;
@@ -210,66 +336,107 @@ export function initQuestionSection({
       return getBookmarks().has(bookmarkKey(collectionName, docSnap.id));
     });
 
-    if (!visibleDocs.length) {
+    if (!filteredDocs.length) {
       const empty = document.createElement("div");
       empty.className = "empty";
       empty.textContent = docs.length ? "No matching questions." : "No questions yet.";
       listEl.appendChild(empty);
+      if (loadMoreBtn) {
+        loadMoreBtn.classList.add("hidden");
+      }
       return;
     }
 
-    visibleDocs.forEach((docSnap) => {
+    const pagedDocs = filteredDocs.slice(0, visibleCount);
+
+    pagedDocs.forEach((docSnap) => {
       listEl.appendChild(createQuestionCard({
         docSnap,
         collectionName,
         onBookmarkToggle,
         onAnyDataChange,
-        answerUnsubs
+        answerUnsubs,
+        toastRoot,
+        canWrite,
+        writeBlockReason
       }));
     });
+
+    if (loadMoreBtn) {
+      loadMoreBtn.classList.toggle("hidden", filteredDocs.length <= pagedDocs.length);
+    }
   };
 
   formEl.addEventListener("submit", async (event) => {
     event.preventDefault();
+    const submitBtn = event.submitter || event.target.querySelector("button[type='submit']");
     const question = inputEl.value.trim();
-    const user = auth.currentUser;
+    const user = currentUser;
+    setButtonLoading(submitBtn, true, "Posting...");
 
     if (!question) {
-      alert("Enter a question.");
+      showToast(toastRoot, "Enter a question.", "error");
+      setButtonLoading(submitBtn, false);
       return;
     }
 
     if (!user) {
-      alert("Login to submit a question.");
+      showToast(toastRoot, "Login to submit a question.", "error");
+      setButtonLoading(submitBtn, false);
       return;
     }
 
-    await addDoc(categoryRef, {
-      question,
-      userId: user.uid,
-      timestamp: serverTimestamp()
-    });
+    if (!canWriteContent(user)) {
+      showToast(toastRoot, "Verify your email first before posting questions.", "error");
+      setButtonLoading(submitBtn, false);
+      return;
+    }
 
-    inputEl.value = "";
-    if (typeof onAnyDataChange === "function") {
-      onAnyDataChange();
+    try {
+      await addDoc(categoryRef, {
+        question,
+        userId: user.uid,
+        timestamp: serverTimestamp()
+      });
+
+      inputEl.value = "";
+      showToast(toastRoot, "Question posted.", "success");
+      if (typeof onAnyDataChange === "function") {
+        onAnyDataChange();
+      }
+    } catch (error) {
+      showToast(toastRoot, toFriendlyErrorMessage(error, "Failed to post question."), "error");
+    } finally {
+      setButtonLoading(submitBtn, false);
     }
   });
 
   [searchEl, sortEl, bookmarkOnlyEl].forEach((control) => {
-    control.addEventListener("input", renderList);
-    control.addEventListener("change", renderList);
+    const resetAndRender = () => {
+      visibleCount = PAGE_SIZE;
+      renderList();
+    };
+    control.addEventListener("input", resetAndRender);
+    control.addEventListener("change", resetAndRender);
   });
+
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener("click", () => {
+      visibleCount += PAGE_SIZE;
+      renderList();
+    });
+  }
 
   const unsubQuestions = onSnapshot(categoryRef, (snapshot) => {
     docs = snapshot.docs;
+    visibleCount = PAGE_SIZE;
     renderList();
     if (typeof onAnyDataChange === "function") {
       onAnyDataChange();
     }
   }, (error) => {
     console.error(`Failed to load ${collectionName}`, error);
-    listEl.innerHTML = `<div class=\"empty\">Could not load ${collectionName}. Check Firestore rules/permissions.</div>`;
+    listEl.innerHTML = `<div class="empty">${toFriendlyErrorMessage(error, "Could not load questions right now. Please refresh.")}</div>`;
     docs = [];
     if (typeof onAnyDataChange === "function") {
       onAnyDataChange();
@@ -279,6 +446,11 @@ export function initQuestionSection({
   return {
     categoryRef,
     getDocs: () => docs,
+    setCurrentUser: (user) => {
+      currentUser = user;
+      applyComposerState();
+      renderList();
+    },
     renderList,
     teardown: () => {
       cleanupAnswers();

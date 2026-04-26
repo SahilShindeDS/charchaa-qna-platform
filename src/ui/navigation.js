@@ -23,13 +23,25 @@ export function showSection(dom, targetId) {
   dom.topTitle.textContent = titleFromTarget(targetId);
 }
 
+export function setAdminVisibility(dom, isVisible) {
+  if (!dom.navAdmin) {
+    return;
+  }
+
+  dom.navAdmin.classList.toggle("hidden", !isVisible);
+  dom.navAdmin.style.display = isVisible ? "" : "none";
+  dom.navAdmin.setAttribute("aria-hidden", isVisible ? "false" : "true");
+}
+
 export function setupNavigation({ dom, isAdmin, onAdminOpen, onSectionChange }) {
   dom.navLinks.forEach((link) => {
     link.addEventListener("click", async () => {
       const target = link.dataset.target;
 
       if (target === "admin-section" && !isAdmin()) {
-        alert("Only admin can access this section.");
+        if (typeof onSectionChange === "function") {
+          onSectionChange("dashboard-section", "Admin access is restricted.");
+        }
         return;
       }
 

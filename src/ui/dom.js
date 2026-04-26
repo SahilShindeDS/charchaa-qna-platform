@@ -5,12 +5,21 @@ export function getDom() {
 
     topTitle: document.getElementById("top-title"),
     userStatus: document.getElementById("user-status"),
+    authStateHint: document.getElementById("auth-state-hint"),
     googleLoginBtn: document.getElementById("google-login"),
     logoutBtn: document.getElementById("logout-btn"),
+    navAdmin: document.getElementById("nav-admin"),
 
     loginModal: document.getElementById("login-modal"),
     signupModal: document.getElementById("signup-modal"),
     forgotModal: document.getElementById("forgot-modal"),
+    verifyModal: document.getElementById("verify-modal"),
+
+    loginMsg: document.getElementById("login-msg"),
+    signupMsg: document.getElementById("signup-msg"),
+    forgotMsg: document.getElementById("forgot-msg"),
+    verifyEmailText: document.getElementById("verify-email-text"),
+    toastRoot: document.getElementById("toast-root"),
 
     dashboardSection: document.getElementById("dashboard-section"),
     eduSection: document.getElementById("edu-section"),
@@ -26,6 +35,8 @@ export function getDom() {
     eduSearch: document.getElementById("edu-search"),
     eduSort: document.getElementById("edu-sort"),
     eduBookmarkOnly: document.getElementById("edu-bookmark-only"),
+    eduLoadMore: document.getElementById("edu-load-more"),
+    eduWriteGate: document.getElementById("edu-write-gate"),
 
     genForm: document.getElementById("general-question-form"),
     genInput: document.getElementById("general-question"),
@@ -33,6 +44,8 @@ export function getDom() {
     genSearch: document.getElementById("gen-search"),
     genSort: document.getElementById("gen-sort"),
     genBookmarkOnly: document.getElementById("gen-bookmark-only"),
+    genLoadMore: document.getElementById("gen-load-more"),
+    genWriteGate: document.getElementById("gen-write-gate"),
 
     dashboardFeed: document.getElementById("dashboard-feed"),
     myActivityList: document.getElementById("my-activity-list"),
